@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GPS en Tiempo Real</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #f0f0f0;
+      margin: 0;
+      padding: 0;
+    }
+    .card {
+      background: white;
+      padding: 15px;
+      margin: 10px auto;
+      border-radius: 10px;
+      max-width: 400px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    #map {
+      width: 100%;
+      height: 400px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1> GPS en Tiempo Real</h1>
+
+  <!-- Ubicación GPS -->
+  <div class="card">
+    <h2>Ubicación</h2>
+    <p><strong>Latitud:</strong> <span id="lat">---</span></p>
+    <p><strong>Longitud:</strong> <span id="lon">---</span></p>
+    <p><strong>Precisión:</strong> <span id="acc">---</span> metros</p>
+  </div>
+
+  <!-- Mapa en tiempo real -->
+  <div id="map"></div>
+
+  <!-- Sensor Brújula -->
+  <div class="card">
+    <h2>Brújula</h2>
+    <p><strong>Orientación:</strong> <span id="alpha">---</span>°</p>
+    <p><strong>Inclinación X:</strong> <span id="beta">---</span>°</p>
+    <p><strong>Inclinación Y:</strong> <span id="gamma">---</span>°</p>
+  </div>
+
+  <!-- Sensor Acelerómetro -->
+  <div class="card">
+    <h2>Acelerómetro</h2>
+    <p><strong>X:</strong> <span id="ax">---</span> m/s²</p>
+    <p><strong>Y:</strong> <span id="ay">---</span> m/s²</p>
+    <p><strong>Z:</strong> <span id="az">---</span> m/s²</p>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    // Inicializar mapa
+    let map = L.map('map').setView([0, 0], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+
+    let marker = L.marker([0, 0]).addTo(map);
+
+    // --- PROYECTO 1: GPS en tiempo real ---
+    if ("geolocation" in navigator) {
+      navigator.geolocation.watchPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          const acc = position.coords.accuracy;
+
+          // Mostrar valores
+          document.getElementById("lat").textContent = lat.toFixed(6);
+          document.getElementById("lon").textContent = lon.toFixed(6);
+          document.getElementById("acc").textContent = acc.toFixed(2);
+
+          // Mover marcador
+          const newPos = [lat, lon];
+          marker.setLatLng(newPos);
+          map.setView(newPos);
+        },
+        (error) => {
+          alert("Error al obtener ubicación: " + error.message);
+        },
+        { enableHighAccuracy: true }
+      );
+    } else {
+      alert("Geolocalización no soportada en este dispositivo.");
+    }
+
+    // --- PROYECTO 2: Sensor Brújula ---
+    if (window.DeviceOrientationEvent) {
+      window.addEventListener("deviceorientation", (event) => {
+        document.getElementById("alpha").textContent = event.alpha ? event.alpha.toFixed(2) : "---";
+        document.getElementById("beta").textContent = event.beta ? event.beta.toFixed(2) : "---";
+        document.getElementById("gamma").textContent = event.gamma ? event.gamma.toFixed(2) : "---";
+      });
+    }
+
+    // --- PROYECTO 3: Acelerómetro ---
+    if (window.DeviceMotionEvent) {
+      window.addEventListener("devicemotion", (event) => {
+        if (event.accelerationIncludingGravity) {
+          document.getElementById("ax").textContent = event.accelerationIncludingGravity.x.toFixed(2);
+          document.getElementById("ay").textContent = event.accelerationIncludingGravity.y.toFixed(2);
+          document.getElementById("az").textContent = event.accelerationIncludingGravity.z.toFixed(2);
+        }
+      });
+    }
+  </script>
+
+</body>
+</html>
